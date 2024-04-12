@@ -33,43 +33,36 @@ public class Converter {
 		Sheet sheet = workbook.getSheetAt(0);
 
 		Workbook workbookOut = new HSSFWorkbook();
-		Sheet outSheet = workbookOut.createSheet("New Sheet");
+		Sheet outSheet = workbookOut.createSheet("Final Sheet");
+		Sheet tempSheet = workbookOut.createSheet("Sheet with all mode");
 
 		for (Cell cell : sheet.getRow(0)) {
 			if (cell.getStringCellValue().equals("SN")) {
-				service.addColumn(cell.getColumnIndex(), sheet, constants.SN_COLUMN_INDEX, outSheet);
+				service.addColumn(cell.getColumnIndex(), sheet, constants.SN_COLUMN_INDEX, tempSheet);
 			} else if (cell.getStringCellValue().equals("F.U.P.")) {
-				service.addCustomFUPColumn(cell.getColumnIndex(), sheet, constants.FUP_COLUMN_INDEX, outSheet);
+				service.addCustomFUPColumn(cell.getColumnIndex(), sheet, constants.FUP_COLUMN_INDEX, tempSheet);
 			} else if (cell.getStringCellValue().equals("D.O.C.")) {
-				service.addColumn(cell.getColumnIndex(), sheet, constants.DOC_COLUMN_INDEX, outSheet);
+				service.addColumn(cell.getColumnIndex(), sheet, constants.DOC_COLUMN_INDEX, tempSheet);
 			} else if (cell.getStringCellValue().equals("Mode")) {
-				service.addCustomModeColumn(cell.getColumnIndex(), sheet, constants.MODE_COLUMN_INDEX, outSheet);
+				service.addCustomModeColumn(cell.getColumnIndex(), sheet, constants.MODE_COLUMN_INDEX, tempSheet);
 			} else if (cell.getStringCellValue().equals("Policy No.")) {
-				service.addColumn(cell.getColumnIndex(), sheet, constants.POLICYNO_COLUMN_INDEX, outSheet);
+				service.addColumn(cell.getColumnIndex(), sheet, constants.POLICYNO_COLUMN_INDEX, tempSheet);
 			} else if (cell.getStringCellValue().equals("Premium(+Tax)")) {
-				service.addCustomPremiumColumn(cell.getColumnIndex(), sheet, constants.PREMIUM_COLUMN_INDEX, outSheet);
+				service.addCustomPremiumColumn(cell.getColumnIndex(), sheet, constants.PREMIUM_COLUMN_INDEX, tempSheet);
 			} else if (cell.getStringCellValue().equals("Name")) {
-				service.addCustomNameColumn(cell.getColumnIndex(), sheet, constants.NAME_COLUMN_INDEX, outSheet);
+				service.addCustomNameColumn(cell.getColumnIndex(), sheet, constants.NAME_COLUMN_INDEX, tempSheet);
 			}
 		}
 
-		int lastIndexToSwap = outSheet.getLastRowNum();
-		int totalSwap = 0;
-		for (int i = outSheet.getFirstRowNum(); i <= lastIndexToSwap; i++) {
-			Row row = outSheet.getRow(i);
-			if (row.getCell(constants.MODE_COLUMN_INDEX).getStringCellValue().equals("Mly")) {
-				if (outSheet.getRow(lastIndexToSwap).getCell(constants.MODE_COLUMN_INDEX).getStringCellValue()
-						.equals("Mly"))
-					lastIndexToSwap--;
-				service.swapRow(row, outSheet, lastIndexToSwap--);
-				totalSwap++;
-			}
-		}
-		int lastRowNum = outSheet.getLastRowNum();
-		for (int i = 0; i < totalSwap; i++) {
-			Row rowToRemove = outSheet.getRow(lastRowNum - i);
-			if (rowToRemove != null) {
-				outSheet.removeRow(rowToRemove);
+		int newRowIndex = 0;
+		for (int i = tempSheet.getFirstRowNum(); i <= tempSheet.getLastRowNum(); i++) {
+			Row row = tempSheet.getRow(i);
+			if (!row.getCell(constants.MODE_COLUMN_INDEX).getStringCellValue().equals("Mly")) {
+				Row newRow = outSheet.createRow(newRowIndex++);
+				for (Cell cell : row) {
+					Cell newCell = newRow.createCell(cell.getColumnIndex());
+					newCell.setCellValue(cell.getStringCellValue());
+				}
 			}
 		}
 
